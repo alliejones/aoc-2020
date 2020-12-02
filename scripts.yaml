@@ -3,3 +3,4 @@ allow:
 
 scripts:
   day1: day1/day1.ts
+  day1-2: day1/day1-2.ts
