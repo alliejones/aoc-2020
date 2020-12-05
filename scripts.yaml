@@ -6,3 +6,5 @@ scripts:
   day1-2: day1/day1-2.ts
   day2: day2/day2.ts
   day2-test: deno test day2/tests.ts
+  day3: day3/day3.ts
+  day3-test: deno test day3/tests.ts
