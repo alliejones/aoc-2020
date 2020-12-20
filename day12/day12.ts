@@ -1,3 +1,5 @@
+import { degToRad } from "../util.ts";
+
 const MovDir = {
   N: [0, 1],
   E: [1, 0],
@@ -7,8 +9,8 @@ const MovDir = {
 type MovDir = typeof MovDir[keyof typeof MovDir];
 
 const RotDir = {
-  R: 1,
-  L: -1,
+  R: -1,
+  L: 1,
 };
 type RotDir = typeof RotDir[keyof typeof RotDir];
 
@@ -61,9 +63,10 @@ function assertValidRot(amt: number): Rot {
 
 class Ship {
   instrSet: Instr[];
-  rot: Rot = Rot.E;
   x = 0;
   y = 0;
+  wx = 10;
+  wy = 1;
 
   static parseInstr(instr: string): Instr {
     const type = instr.slice(0, 1);
@@ -98,7 +101,7 @@ class Ship {
           this.doMove(instr.dir, instr.amt);
           break;
         case "fwd":
-          this.doMove(rotToDir(this.rot), instr.amt);
+          this.doFwd(instr.amt);
           break;
         case "rot":
           this.doRot(instr);
@@ -111,13 +114,21 @@ class Ship {
 
   doMove(dir: MovDir, amt: number) {
     const [xDir, yDir] = dir;
-    this.x += xDir * amt;
-    this.y += yDir * amt;
+    this.wx += xDir * amt;
+    this.wy += yDir * amt;
+  }
+
+  doFwd(amt: number) {
+    this.x += this.wx * amt;
+    this.y += this.wy * amt;
   }
 
   doRot({ deg, dir }: RotInstr) {
-    let newRot = this.rot + (dir * deg);
-    this.rot = assertValidRot((newRot % 360 + 360) % 360);
+    let rad = degToRad(deg * dir);
+    let newX = Math.round(this.wx * Math.cos(rad) - this.wy * Math.sin(rad));
+    let newY = Math.round(this.wy * Math.cos(rad) + this.wx * Math.sin(rad));
+    this.wx = newX;
+    this.wy = newY;
   }
 
   dist() {
@@ -125,13 +136,6 @@ class Ship {
   }
 }
 
-// const input = `
-// F10
-// N3
-// F7
-// R90
-// F11
-// `;
 const input = await Deno.readTextFile("./day12/input.txt");
 const ship = new Ship(input);
 ship.run();
