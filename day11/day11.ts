@@ -1,11 +1,21 @@
-export {};
-
 const Seat = {
   empty: "L",
   floor: ".",
   full: "#",
 } as const;
 type Seat = typeof Seat[keyof typeof Seat];
+
+const Dir = {
+  N: [-1, 0],
+  NE: [-1, 1],
+  E: [0, 1],
+  SE: [1, 1],
+  S: [1, 0],
+  SW: [1, -1],
+  W: [0, -1],
+  NW: [-1, -1],
+} as const;
+type Dir = typeof Dir[keyof typeof Dir];
 
 class Layout {
   layout: Seat[][] = [];
@@ -68,7 +78,7 @@ class Layout {
     ) {
       return Seat.full;
     } else if (
-      seat === Seat.full && this.getNeighborCount(row, col, Seat.full) >= 4
+      seat === Seat.full && this.getNeighborCount(row, col, Seat.full) >= 5
     ) {
       return Seat.empty;
     } else {
@@ -85,22 +95,43 @@ class Layout {
   }
 
   getNeighborCount(row: number, col: number, state: Seat) {
-    return [
-      [row - 1, col - 1],
-      [row - 1, col],
-      [row - 1, col + 1],
-      [row, col - 1],
-      [row, col + 1],
-      [row + 1, col - 1],
-      [row + 1, col],
-      [row + 1, col + 1],
-    ].filter(([row, col]) =>
-      row >= 0 && row < this.length && col >= 0 && col < this.getRow(row).length
-    ).reduce(
-      (count, [row, col]) =>
-        this.getSeat(row, col) === state ? count + 1 : count,
-      0,
-    );
+    let count = 0;
+    for (let dir of Object.values(Dir)) {
+      let seat = this.findNearestSeat(row, col, dir);
+      if (seat === state) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  findNearestSeat(
+    seatRow: number,
+    seatCol: number,
+    [rowD, colD]: Dir,
+  ): Seat | null {
+    let row = seatRow + rowD;
+    let col = seatCol + colD;
+
+    let curr;
+    while (this.isValidCoord(row, col)) {
+      curr = this.getSeat(row, col);
+      if (curr !== Seat.floor) {
+        return curr;
+      }
+      row += rowD;
+      col += colD;
+    }
+
+    return null;
+  }
+
+  isValidCoord(
+    row: number,
+    col: number,
+  ) {
+    return row >= 0 && row < this.layout.length && col >= 0 &&
+      col < this.layout[row].length;
   }
 
   getTypeCount(state: Seat) {
@@ -163,4 +194,4 @@ const sim = new SeatingSim(initial);
 sim.run();
 console.log(sim.getCurrentLayout().getTypeCount(Seat.full));
 
-export { Layout, Seat, SeatingSim };
+export { Dir, Layout, Seat, SeatingSim };

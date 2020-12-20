@@ -1,6 +1,5 @@
-import { assertStringIncludes } from "https://deno.land/std@0.79.0/testing/asserts.ts";
 import { assertEquals } from "../deps-test.ts";
-import { Layout, Seat, SeatingSim } from "./day11.ts";
+import { Dir, Layout, Seat, SeatingSim } from "./day11.ts";
 
 const testLayout = `
 #.#L.L#.##
@@ -11,19 +10,6 @@ L.L.L..#..
 #.LL#L#.##
 ..L.L.....
 #L#LLLL#L#
-#.LLLLLL.L
-#.#L#L#.##`;
-
-// one tick after layout 1
-const testLayout2 = `
-#.#L.L#.##
-#LLL#LL.L#
-L.#.L..#..
-#L##.##.L#
-#.#L.LL.LL
-#.#L#L#.##
-..L.L.....
-#L#L##L#L#
 #.LLLLLL.L
 #.#L#L#.##`;
 
@@ -40,22 +26,36 @@ Deno.test("Layout#getSeat", () => {
   assertEquals(layout.getSeat(1, 1), Seat.empty);
 });
 
-Deno.test("Layout#getNeighborCount", () => {
-  let layout = new Layout(testLayout);
-  assertEquals(layout.getNeighborCount(3, 4, Seat.floor), 3);
-  assertEquals(layout.getNeighborCount(3, 4, Seat.empty), 4);
-  assertEquals(layout.getNeighborCount(3, 4, Seat.full), 1);
+Deno.test("Layout#findNearestSeat", () => {
+  let layout = new Layout(`.............\n.L.L.#.#.#.#.\n.............`);
+  assertEquals(layout.findNearestSeat(1, 1, Dir.E), Seat.empty);
+  assertEquals(layout.findNearestSeat(1, 1, Dir.N), null);
 });
 
-Deno.test("Layout#getNeighborCount corner", () => {
-  let layout = new Layout(testLayout);
-  assertEquals(layout.getNeighborCount(0, 0, Seat.empty), 1);
-  assertEquals(layout.getNeighborCount(9, 0, Seat.floor), 2);
-  assertEquals(layout.getNeighborCount(9, 9, Seat.full), 1);
+Deno.test("Layout#findNearestSeat full all directions", () => {
+  let layout = new Layout(`.......#.
+...#.....
+.#.......
+.........
+..#L....#
+....#....
+.........
+#........
+...#.....`);
+  for (let dir of Object.values(Dir)) {
+    assertEquals(layout.findNearestSeat(4, 3, dir), Seat.full);
+  }
 });
 
-Deno.test("Layout#next", () => {
-  let layout = new Layout(testLayout);
-  let layout2 = new Layout(testLayout2);
-  assertEquals(layout.next().toString(), layout2.toString());
+Deno.test("Layout#findNearestSeat none all directions", () => {
+  let layout = new Layout(`.##.##.
+#.#.#.#
+##...##
+...L...
+##...##
+#.#.#.#
+.##.##.`);
+  for (let dir of Object.values(Dir)) {
+    assertEquals(layout.findNearestSeat(3, 3, dir), null);
+  }
 });
